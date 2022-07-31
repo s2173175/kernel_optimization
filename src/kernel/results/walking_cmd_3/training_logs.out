@@ -1,0 +1,31 @@
+[2022-07-09 20:36:58] COMMAND: train_auto.py -name walking_cmd_3 -input_dims 7
+[2022-07-09 20:36:58] Arguments: {'learning_rate': 0.001, 'dropout_prob': 0.2, 'l2': 0, 'max_epoch': 20, 'data_dir': ['./data/sets/walking_cmd_3_x.csv', './data/sets/walking_cmd_3_y.csv'], 'batch_size': 100, 'save_dir': './kernel/results/walking_cmd_3', 'log_file': './kernel/results/walking_cmd_3/training_logs.out', 'model_file': './kernel/results/walking_cmd_3/checkpoint_best.pt', 'device': device(type='cuda', index=0), 'mode': 'rollout-training', 'seed': None, 'decay_rate': 0.8}
+[2022-07-09 20:36:58] Commencing training!
+[2022-07-09 20:39:36] Epoch 000: loss 0.01733 | lr 5.14e-08 | validation_loss 4.459e-07
+[2022-07-09 20:41:34] Epoch 000: loss 0.01099 | lr 5.14e-08 | validation_loss 4.016e-07
+[2022-07-09 20:43:34] Epoch 000: loss 0.01054 | lr 5.14e-08 | validation_loss 3.702e-07
+[2022-07-09 20:45:41] Epoch 000: loss 0.01029 | lr 5.14e-08 | validation_loss 3.688e-07
+[2022-07-09 20:47:49] Epoch 000: loss 0.01012 | lr 5.14e-08 | validation_loss 3.472e-07
+[2022-07-09 20:49:58] Epoch 000: loss 0.009995 | lr 5.14e-08 | validation_loss 3.376e-07
+[2022-07-09 20:52:06] Epoch 000: loss 0.009892 | lr 5.14e-08 | validation_loss 3.279e-07
+[2022-07-09 20:54:09] Epoch 000: loss 0.00984 | lr 5.14e-08 | validation_loss 3.378e-07
+[2022-07-09 20:56:08] Epoch 000: loss 0.009771 | lr 5.14e-08 | validation_loss 3.245e-07
+[2022-07-09 20:58:06] Epoch 000: loss 0.009724 | lr 5.14e-08 | validation_loss 3.436e-07
+[2022-07-09 21:00:05] Epoch 000: loss 0.009684 | lr 5.14e-08 | validation_loss 3.21e-07
+[2022-07-09 21:02:03] Epoch 000: loss 0.009661 | lr 5.14e-08 | validation_loss 3.166e-07
+[2022-07-09 21:04:02] Epoch 000: loss 0.009634 | lr 5.14e-08 | validation_loss 3.142e-07
+[2022-07-09 21:06:01] Epoch 000: loss 0.009623 | lr 5.14e-08 | validation_loss 3.063e-07
+[2022-07-09 21:07:59] Epoch 000: loss 0.009606 | lr 5.14e-08 | validation_loss 3.263e-07
+[2022-07-09 21:09:58] Epoch 000: loss 0.009589 | lr 5.14e-08 | validation_loss 3.214e-07
+[2022-07-09 21:11:57] Epoch 000: loss 0.00958 | lr 5.14e-08 | validation_loss 3.121e-07
+[2022-07-09 21:13:56] Epoch 000: loss 0.009567 | lr 5.14e-08 | validation_loss 3.16e-07
+[2022-07-09 21:15:54] Epoch 000: loss 0.009566 | lr 5.14e-08 | validation_loss 3.035e-07
+[2022-07-09 21:17:53] Epoch 000: loss 0.009565 | lr 5.14e-08 | validation_loss 3.167e-07
+[2022-07-09 21:19:51] Epoch 000: loss 0.009548 | lr 5.14e-08 | validation_loss 3.158e-07
+[2022-07-09 21:21:50] Epoch 000: loss 0.009555 | lr 5.14e-08 | validation_loss 3.143e-07
+[2022-07-09 21:23:49] Epoch 000: loss 0.009543 | lr 5.14e-08 | validation_loss 3.161e-07
+[2022-07-09 21:25:47] Epoch 000: loss 0.009553 | lr 5.14e-08 | validation_loss 3.122e-07
+[2022-07-09 21:27:46] Epoch 000: loss 0.009551 | lr 5.14e-08 | validation_loss 3.159e-07
+[2022-07-09 21:29:45] Epoch 000: loss 0.009541 | lr 5.14e-08 | validation_loss 3.203e-07
+[2022-07-09 21:31:44] Epoch 000: loss 0.009539 | lr 5.14e-08 | validation_loss 3.105e-07
+[2022-07-09 21:33:42] Epoch 000: loss 0.009548 | lr 5.14e-08 | validation_loss 3.342e-07
