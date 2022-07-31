@@ -1,10 +1,11 @@
 #!/bin/sh
 #SBATCH -N 1	  # nodes requested
 #SBATCH -n 1	  # tasks requested
-#SBATCH --partition=Teach-Standard
-#SBATCH --gres=gpu:1
-#SBATCH --mem=12000  # memory in Mb
-#SBATCH --time=0-08:00:00
+#SBATCH --partition=Teach-LongJobs
+#SBATCH --gres=gpu:a6000:1
+#SBATCH --cpus-per-task=10
+#SBATCH --mem=90000  # memory in Mb
+#SBATCH --time=3-08:00:00
 
 export CUDA_HOME=/opt/cuda-9.0.176.1/
 
