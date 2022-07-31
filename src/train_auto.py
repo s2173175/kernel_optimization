@@ -23,7 +23,7 @@ def trainer(trial):
         "seed":500,
         "data_dir": ["./data/sets/train_2", "./data/sets/val_2"],
         "max_epoch":20,
-        "device": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
+        "device": "cuda:0",
         "mode":"rollout-training",
     }
     
@@ -49,11 +49,11 @@ def trainer(trial):
     return valid_best
 
 if __name__ == "__main__":
-    storage = "sqlite:///demo.db"
+    storage = "sqlite:///bo_params.db"
     
     try:
         study = optuna.create_study(study_name="hparams", storage=storage, sampler=optuna.samplers.TPESampler(), directions=['minimize'])
     except:
         study = optuna.load_study(study_name="hparams", storage=storage, sampler=optuna.samplers.TPESampler())
         
-    study.optimize(trainer, n_trials=100, gc_after_trial=True, n_jobs=1)
+    study.optimize(trainer, n_trials=100, gc_after_trial=True, n_jobs=10)
