@@ -1,6 +1,6 @@
 import re
 import torch
-from torchsummary import summary
+
 from kernel.models.denseNN import DenseNN
 
 import sys
@@ -8,83 +8,52 @@ import argparse
 import csv
 import numpy as np
 
-if __name__ == "__main__":
+import optuna
 
+def trainer(trial):
     config = {
-        "learning_rate":1e-3,
-        "dropout_prob":0.2,
-        "l2":0,
+        "learning_rate":trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True),
+        "dropout_prob":trial.suggest_float("dropout_prob", 0.0, 0.3),
+        "l2":trial.suggest_float("l2", 0.0, 0.1),
+        "decay_rate":trial.suggest_categorical("decay_rate", [0.7,0.8,0.9]),
+        "batch_size":trial.suggest_categorical("batch_size", [100,500,1000,2000]),
+        "activation":trial.suggest_categorical("activation", ['tanh', 'relu']),
+        "batch_norm":trial.suggest_categorical("batch_norm", [True, False]),
+        "network_size":trial.suggest_categorical("network_size", ['small', 'medium', 'large', 'biggest']),
+        "seed":500,
+        "data_dir": ["./data/sets/train_2", "./data/sets/val_2"],
         "max_epoch":20,
-        "data_dir": ["./data/sets/walking_cmd_100_x.csv", "./data/sets/walking_cmd_100_y.csv"],
-        "batch_size":1000,
-        "save_dir": "./kernel/results/walking_cmd_100",
-        "log_file": "./kernel/results/walking_cmd_100/training_logs.out",
-        "model_file": "./kernel/results/walking_cmd_100/checkpoint_best.pt",
         "device": torch.device("cuda:0" if torch.cuda.is_available() else "cpu"),
-        "mode":"training",
-        "seed":0,
-        "decay_rate":0
+        "mode":"rollout-training",
     }
-
-
-
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-name', help='foo help',required=True, type=str)
-    parser.add_argument('-input_dims', help='foo help',required=True, type=int)
-
-
-
-    parser.add_argument('-lr', help='foo help', default=0.001, type=float)
-    parser.add_argument('-decay', help='foo help',default=0.8, type=float)
-    parser.add_argument('-depth', help='foo help',default=3, type=int)
-    parser.add_argument('-width', help='foo help',default=256, type=int)
-    parser.add_argument('-batch_size', help='foo help',default=100, type=int)
-    parser.add_argument('-seed', help='foo help', default=None, type=int)
-    parser.add_argument('-epochs', help='foo help',default=20, type=int)
-    parser.add_argument('-mode', help='foo help',default='rollout-training', type=str)
-
-    args = parser.parse_args()
-
-
-
-    x = f"./data/sets/{args.name}_x.csv"
-    y = f"./data/sets/{args.name}_y.csv"
-    config['data_dir'] = [x,y]
-
-    save = f"./kernel/results/{args.name}"
-    log =  f"./kernel/results/{args.name}/training_logs.out"
-    model =  f"./kernel/results/{args.name}/checkpoint_best.pt"
-
-    config["save_dir"] = save
-    config["log_file"] = log
-    config["model_file"] = model
-
-    config["learning_rate"] = args.lr
-    config["decay_rate"] = args.decay
-    config["depth"] = args.depth
-    config["width"] = args.width
-    config["batch_size"] = args.batch_size
-    config["max_epoch"] = args.epochs
-    config["seed"] = args.seed
-    config["mode"] = args.mode
-
-
-
+    
+    networks = {
+        'small':{'width':128,'depth':2 },
+        'medium':{'width':128,'depth':3},
+        'large':{'width':256,'depth':3},
+        'biggest':{'width':256,'depth':4}
+    }
+    
+    config['width'] = networks[config['network_size']]['width']
+    config['depth'] = networks[config['network_size']]['depth']
+    
     print(config)
 
 
-    model = DenseNN(args.input_dims, 12, **config)
-    summary(model, input_data=(100,args.input_dims),batch_dim=None)
+    model = DenseNN(7, 12, **config)
+
 
     model.load_data()
     valid_best, losses, validations = model.train_model()
- 
+    
+    return valid_best
 
-    with open("./kernel/results/losses_validations_all.csv", 'a') as f:
-        writer = csv.writer(f)
-
-        for step in range(len(losses)):
-
-            # row = np.concatenate(args.name, step, losses[step],validations[step])
-            writer.writerow([args.name, step, losses[step],validations[step]])
+if __name__ == "__main__":
+    storage = "sqlite:///demo.db"
+    
+    try:
+        study = optuna.create_study(study_name="hparams", storage=storage, sampler=optuna.samplers.TPESampler(), directions=['minimize'])
+    except:
+        study = optuna.load_study(study_name="hparams", storage=storage, sampler=optuna.samplers.TPESampler())
+        
+    study.optimize(trainer, n_trials=100, gc_after_trial=True, n_jobs=1)

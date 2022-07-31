@@ -21,11 +21,11 @@ class FCNetwork(nn.Module):
         super().__init__()
         self.input_size = dims[0]
         self.out_size = dims[-1]
-        self.layers = self.make_seq(dims, output_activation, kwargs['dropout_prob'])
+        self.layers = self.make_seq(dims, output_activation, kwargs['dropout_prob'], kwargs)
         self.config = kwargs
 
     @staticmethod
-    def make_seq(dims: Iterable[int], output_activation: nn.Module, dropout_prob) -> nn.Module:
+    def make_seq(dims: Iterable[int], output_activation: nn.Module, dropout_prob, kwargs) -> nn.Module:
         """Creates a sequential network using ReLUs between layers and no activation at the end
 
         :param dims (Iterable[int]): tuple in the form of (IN_SIZE, HIDDEN_SIZE, HIDDEN_SIZE2,
@@ -43,18 +43,14 @@ class FCNetwork(nn.Module):
         mods = []
 
         for i in range(len(dims) - 2): # TODO replace this with more intuative generation mechanism
-            mods.append(nn.BatchNorm1d(dims[i]))
+            if kwargs['batch_norm']: mods.append(nn.BatchNorm1d(dims[i]))
             mods.append(nn.Linear(dims[i], dims[i + 1]))
-            mods.append(nn.Tanh())
+            if kwargs['activation'] == 'tanh':
+                mods.append(nn.Tanh())
+            else:
+                mods.append(nn.ReLU())
             mods.append(nn.Dropout(p=dropout_prob))
-        # mods.append(nn.Linear(dims[-3], dims[-2]))
-        # mods.append(nn.ReLU())
-
-        # for i in range(int(len(dims)/2)+1, len(dims) - 2 ): # TODO replace this with more intuative generation mechanism
-        #     mods.append(nn.BatchNorm1d(dims[i]))
-        #     mods.append(nn.Linear(dims[i], dims[i + 1]))
-        #     mods.append(nn.Tanh())
-        #     mods.append(nn.Dropout(p=dropout_prob)) # TODO ------------------------- ensure this doesnt drop out during evaluations
+   
 
         mods.append(nn.Linear(dims[-2], dims[-1]))
         if output_activation:

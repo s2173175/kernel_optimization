@@ -71,27 +71,12 @@ class DenseNN(nn.Module):
 
     def load_data(self):
         # TODO ----------- remove yaw and target error
-        x = pd.read_csv(self.config["data_dir"][0], index_col=0).to_numpy()
-        y = pd.read_csv(self.config["data_dir"][1], index_col=0).to_numpy()
-
-        print(x.shape)
-       
-
-        N = len(x)
-
-        data = list(zip(x,y))
-        random.shuffle(data)
-
-        self.training_data = data[:int(0.8*N)]
-        self.validation_data = data[int(0.8*N):]
-
-        print(N)
-        print(len(y))
-        print(len(data))
-        print(len(self.training_data))
-        print(len(self.validation_data))
-     
-        # self.test_data = data[int(0.9*N):]
+        train_x = pd.read_csv(self.config["data_dir"][0]+'_x.csv', index_col=0).to_numpy()
+        train_y = pd.read_csv(self.config["data_dir"][0]+'_y.csv', index_col=0).to_numpy()
+        val_x = pd.read_csv(self.config["data_dir"][1]+'_x.csv', index_col=0).to_numpy()
+        val_y = pd.read_csv(self.config["data_dir"][1]+'_y.csv', index_col=0).to_numpy()
+        self.training_data = list(zip(train_x, train_y))
+        self.validation_data = list(zip(val_x, val_y))
         return
 
     def train_model(self):
@@ -125,7 +110,7 @@ class DenseNN(nn.Module):
             if self.config["mode"] == 'rollout-training' and no_improvement_count == 10:
                 break
 
-
+          
             train_loader = torch.utils.data.DataLoader(self.training_data, num_workers=1, batch_size=self.config['batch_size'], shuffle=True)
 
             self.train()
@@ -163,20 +148,11 @@ class DenseNN(nn.Module):
                 no_improvement_count = 0
                 valid_best = stats['validation_loss'] 
 
-            
-
-            
             if self.config['mode'] != "gs":
-                save_checkpoint(self.config, self, self.network_opt, epoch, stats['validation_loss'])
                 logging.info('Epoch {:03d}: {}'.format(epoch, ' | '.join(key + ' {:.4g}'.format(value / len(progress_bar)) for key, value in stats.items())))
 
             stats['loss'] = 0
             stats['validation_loss'] = 0
-
-
-        # if self.config['mode'] == "training":
-        #     np.save(f'{self.config["save_dir"]}_stats.npy', self.validation_stats)
-
 
         return valid_best, losses, validations
 
@@ -196,6 +172,7 @@ class DenseNN(nn.Module):
         targets = torch.Tensor()
 
         for i, sample in enumerate(progress_bar):
+   
             output = self(sample[0].float().to(self.config['device']))
             loss = self.loss(output, sample[1].float().to(self.config['device']))
 
@@ -212,35 +189,7 @@ class DenseNN(nn.Module):
         
         return (stats['validation_loss'])/(len(self.validation_data)/self.config["batch_size"])
 
-    def test_model(self):
-        stats = OrderedDict()
-        stats['validation_loss'] = 0
-  
-
-        self.eval()
-        
-        train_loader = torch.utils.data.DataLoader(self.test_data, num_workers=1, batch_size=self.config['batch_size'], shuffle=True)
-        progress_bar = tqdm(train_loader, desc='| TEST', leave=False, disable=False)
-
-        for i, sample in enumerate(progress_bar):
-            output = self(sample[0].float().to(self.config['device']))
-            s = sample[1].float().to(self.config['device'])
-
-            print(output[0])
-            print(s[0])
-            input()
-
-
-       
-            loss = self.loss(output, s)
-            
-            stats['validation_loss'] += loss.item()
-
-            progress_bar.set_postfix({key: '{:.4g}'.format(value / (i + 1)) for key, value in stats.items()},
-                                    refresh=True)
-
-
-        return((stats['validation_loss'])/(len(self.validation_data)/self.config["batch_size"]))
+ 
 
 
     def view_plot_foot_positions(self):
@@ -292,95 +241,11 @@ class DenseNN(nn.Module):
             ax3.plot(x[:,3+limb*2], "b")
             ax3.set_title('Z')
 
-
-
         plt.show()
-
 
         return
 
 
-    def view_plot_q_q_dot(self):
-
-        self.eval()
-
-        x = torch.Tensor(pd.read_csv("./data/sets/episode_joints_x.csv", index_col=0).to_numpy())
-        y = torch.Tensor(pd.read_csv("./data/sets/episode_joints_y.csv", index_col=0).to_numpy())
-
-        pred_y = self(torch.Tensor(x).float().to(self.config['device'])).detach().cpu()
-
-
-        X = 0
-        Y = 12
-        Z = 2
-
-
-        import matplotlib.pyplot as plt
-        fig, ax1 = plt.subplots(nrows=1, ncols=1, sharex=True, sharey=True)
-
-        ax1t = ax1.twinx()
-    
-        
-        #joint angles
-
-        for joint in range(0,12):
-
-            x_true = y[:,X+joint]
-            v_true = y[:,Y+joint]
-          
-
-            x_pred = pred_y[:,X+joint]
-            v_pred = pred_y[:,Y+joint]
-            z_pred = pred_y[:,Z+joint]
-
-            ax1.plot(x_true, 'r')
-            ax1.plot(x_pred, 'g')
-            ax1t.plot(x[:,0], "b")
-            ax1t.plot(x[:,1], "b")
-            ax1t.plot(x[:,2], "b")
-            ax1t.plot(x[:,3], "b")
-            ax1.set_title('X')
-
-        plt.show()
-
-        for limb in range(0,4):
-            fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2, sharex=True, sharey=True)
-
-            ax1t = ax1.twinx()
-            ax2t = ax2.twinx()
-            ax3t = ax3.twinx()
-
-            ax_a = [ax1,ax2,ax3]
-            ax_t = [ax1t,ax2t,ax3t]
-
-            for joint in range(0,3):
-
-                v_true = y[:,Y+(limb*joint)]
-                v_pred = pred_y[:,Y+(limb*joint)]
-        
-
-                ax_a[joint].plot(v_true, 'r')
-                ax_a[joint].plot(v_pred, 'g')
-
-                ax_t[joint].plot(x[:,0], "b")
-                ax_t[joint].plot(x[:,1], "b")
-                ax_t[joint].plot(x[:,2], "b")
-                ax_t[joint].plot(x[:,3], "b")
-
-                ax_a[joint].set_title('X')
-
-            plt.show()
-
-            # ax2.plot(y_true, 'r')
-            # ax2.plot(y_pred, 'g')
-            # ax22.plot(x[:,X+limb], "b")
-            # ax2.set_title('Y')
-
-
-            # ax3.plot(z_true, 'r')
-            # ax3.plot(z_pred, 'g')
-            # ax33.plot(x[:,X+limb], "b")
-            # ax3.set_title('Z')
 
 
 
